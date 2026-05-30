@@ -1,0 +1,25 @@
+# SIDA FastAPI Backend — Python dependencies
+# Install with: pip install -r requirements.txt
+
+# Web framework
+fastapi==0.111.0
+uvicorn[standard]==0.29.0
+
+# Data validation
+pydantic==2.7.1
+
+# DXF parsing  (reused from demo_sidaproject.py)
+ezdxf==1.3.4
+
+# Data processing  (reused from demo_sidaproject.py)
+pandas==2.2.2
+numpy==1.26.4
+
+# PDF generation  (reused from demo_sidaproject.py — optional, for future PDF export)
+reportlab==4.1.0
+
+# File upload support
+python-multipart==0.0.9
+
+# Environment variable loading
+python-dotenv==1.0.1
