@@ -595,6 +595,23 @@
   .info-steps {
     grid-template-columns: 1fr;
   }
+
+  .page-title {
+    font-size: 1.4rem;
+  }
+
+  .page-desc {
+    font-size: 0.9rem;
+  }
+
+  .card {
+    padding: 18px 16px;
+  }
+
+  .drop-zone {
+    padding: 24px 16px;
+    min-height: 150px;
+  }
 }
 
 .info-step {

@@ -114,11 +114,28 @@
 @media (max-width: 600px) {
   .header-inner {
     padding: 0 16px;
+    height: auto;
+    min-height: 56px;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding-top: 10px;
+    padding-bottom: 10px;
   }
   .app-main {
-    padding: 20px 16px;
+    padding: 16px 12px;
   }
   .header-subtitle {
     display: none;
+  }
+  .header-title {
+    font-size: 1.15rem;
+  }
+  .header-nav {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .nav-btn {
+    font-size: 0.78rem;
+    padding: 5px 12px;
   }
 }
