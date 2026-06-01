@@ -98,8 +98,8 @@ function ComplianceBadge({ compliant }) {
   if (compliant === null) {
     return (
       <span className="badge badge-calculated" title="Calculated value">
-        <svg width="11" height="11" viewBox="0 0 11 11" fill="currentColor">
-          <path d="M5.5 1a4.5 4.5 0 1 0 0 9 4.5 4.5 0 0 0 0-9zM5 3.5h1v3H5V3.5zm0 4h1v1H5v-1z"/>
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 16h-2v-2h2v2zm-4 0h-2v-2h2v2zm-4 0H7v-2h2v2zm8-4h-2v-2h2v2zm-4 0h-2v-2h2v2zm-4 0H7v-2h2v2zm8-4H7V5h10v6z"/>
         </svg>
         Calculated
       </span>

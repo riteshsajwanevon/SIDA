@@ -394,9 +394,9 @@
 }
 
 .badge-calculated {
-  background: var(--warning-light);
-  color: var(--warning);
-  border: 1px solid #ffcc80;
+  background: var(--success-light);
+  color: var(--success);
+  border: 1px solid var(--success-border);
 }
 
 /* ── Failures card ── */
