@@ -60,7 +60,7 @@ def _iter_pairs(path: str):
 # Layer color table  (scanned from TABLES section before ENTITIES)
 # ---------------------------------------------------------------------------
 
-def _scan_layer_colors(path: str) -> dict[str, int]:
+def  _scan_layer_colors(path: str) -> dict[str, int]:
     """Return {layer_name: color_int} from the TABLES/LAYER section."""
     colors: dict[str, int] = {}
     in_tables = False

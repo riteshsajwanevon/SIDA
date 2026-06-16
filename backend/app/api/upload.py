@@ -15,16 +15,17 @@ DWG workflow:
 """
 
 from __future__ import annotations
-
+from datetime import datetime
 import json
 import logging
 import shutil
+import tempfile
 import time
 from pathlib import Path
 
 from fastapi import APIRouter, BackgroundTasks, HTTPException, UploadFile, status
 from fastapi.concurrency import run_in_threadpool
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, Response
 
 from app.services.dxf_service import dxf_to_csv_file
 from app.utils.file_utils import (
@@ -72,6 +73,7 @@ def _process_dxf(job_id: str, upload_path: Path, csv_path: Path) -> None:
     """Convert the saved DXF to CSV. Runs in a background thread."""
     _write_status(job_id, {"status": "processing"})
     t0 = time.perf_counter()
+    logger.info(f"DXF processing {datetime.now()}")
 
     try:
         dxf_to_csv_file(str(upload_path), str(csv_path))
@@ -89,6 +91,7 @@ def _process_dxf(job_id: str, upload_path: Path, csv_path: Path) -> None:
         "csv_path": str(csv_path),
         "processing_time_seconds": elapsed,
     })
+    logger.info(f"DXF processed {datetime.now()}")
     logger.info("DXF processed for job %s in %.2fs → %s", job_id, elapsed, csv_path)
 
 
@@ -172,6 +175,72 @@ def _save_file(file: UploadFile, destination: Path) -> None:
     """Blocking file save — called via run_in_threadpool."""
     with destination.open("wb") as buf:
         shutil.copyfileobj(file.file, buf, length=1024 * 1024)  # 1 MB chunks
+
+
+# ---------------------------------------------------------------------------
+# POST /parse-dxf  — convert DXF and return CSV directly
+# ---------------------------------------------------------------------------
+
+@router.post(
+    "/parse-dxf",
+    summary="Convert a DXF file to CSV and return it in the response",
+    responses={
+        200: {"description": "CSV generated successfully"},
+        400: {"description": "Unsupported file type or invalid DXF"},
+        422: {"description": "No file provided"},
+    },
+)
+async def parse_dxf(file: UploadFile):
+    if not file or not file.filename:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail={"status": "error", "message": "No file provided."},
+        )
+
+    ext = validate_extension(file.filename)
+    
+
+    if ext != ".dxf":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail={"status": "error", "message": "Only DXF files can be parsed to CSV."},
+        )
+
+    stem = safe_stem(file.filename)
+
+    try:
+        csv_text = await run_in_threadpool(_convert_uploaded_dxf_to_csv_text, file, stem)
+    except ValueError as exc:
+        logger.exception("DXF parsing failed for uploaded file %s", file.filename)
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail={"status": "error", "message": str(exc)},
+        ) from exc
+    except Exception as exc:
+        logger.exception("Failed to parse uploaded DXF file %s", file.filename)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail={"status": "error", "message": f"Failed to parse DXF: {exc}"},
+        ) from exc
+    finally:
+        await file.close()
+
+    return Response(
+        content=csv_text,
+        media_type="text/csv",
+        headers={"Content-Disposition": f'attachment; filename="{stem}.csv"'},
+    )
+
+
+def _convert_uploaded_dxf_to_csv_text(file: UploadFile, stem: str) -> str:
+    with tempfile.TemporaryDirectory(prefix="sida-parse-dxf-") as tmp_dir:
+        tmp_path = Path(tmp_dir)
+        dxf_path = tmp_path / f"{stem}.dxf"
+        csv_path = tmp_path / f"{stem}.csv"
+
+        _save_file(file, dxf_path)
+        dxf_to_csv_file(str(dxf_path), str(csv_path))
+        return csv_path.read_text(encoding="utf-8")
 
 
 # ---------------------------------------------------------------------------
